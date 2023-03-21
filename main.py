@@ -85,7 +85,6 @@ if n % 2 == 1:  # Избавление от нечетности столбцо�
     matrix = np.delete(matrix, skip_number, 0)
     matrix = np.delete(matrix, skip_number, 1)
 
-# print(f'Матрица А:\n{matrix}')
 
 # Разбиение на подматрицы
 upper_half = np.hsplit(np.vsplit(matrix, 2)[0], 2)
@@ -150,12 +149,6 @@ else:
 if skip_number is None:
     F_matrix = np.vstack([np.hstack([sub_matrix_b, sub_matrix_c]), np.hstack([sub_matrix_d, sub_matrix_e])])
 else:
-    '''F_matrix = np.hstack(
-        np.hstack([np.vstack([sub_matrix_b, sub_matrix_d]),
-                   np.insert([center_stolb, np.vstack([
-                       np.vstack([sub_matrix_c, sub_matrix_e]),
-                   center_line])], 0)]))'''
-
     right_corner = np.vstack([sub_matrix_c, sub_matrix_e])
     left_corner = np.vstack([sub_matrix_b, sub_matrix_d])
     close_matrix = np.hstack([left_corner, np.insert(right_corner, skip_number, center_stolb, axis=1)])

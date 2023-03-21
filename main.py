@@ -36,9 +36,8 @@ try:
 except ValueError:
     sys.exit('Введено не число. Программа завершена.')
 
-bigger = input('Количество нулей в нечетных стобиках C должно быть больше или меньше чем в четных? (Ответьте 0 - если меньше, 1 - '
+bigger = input('Количество нулей в нечетных стобиках C должно быть больше или меньше? (Ответьте 0 - если меньше, 1 - '
                'если больше): ')
-
 
 try:
     bigger = int(bigger)
@@ -60,14 +59,29 @@ for i in range(n):
     main_table.append(work_list)
 
 matrix = np.matrix(main_table)
+A_matrix = matrix
 
 print(f'Матрица А:\n{matrix}')
 
+center_stolb = []
+center_line = []
+skip_number = None
 if n % 2 == 1:  # Избавление от нечетности столбцов
     skip_number = int(n / 2)
+
+    for i in range(len(main_table)):
+        center_stolb.append(main_table[i][skip_number])
+    center_line.append(main_table[skip_number])
+    center_stolb.pop(-1)
+    center_stolb = np.matrix(center_stolb)
+    print(center_stolb)
+    center_line = np.matrix(center_line)
+    print(center_line)
+
     print(
         f'Так как количество столбцов и строк нечетно, строка и столбец под номерами {skip_number + 1} не будут включены'
         f' в подматрицы\n')
+
     matrix = np.delete(matrix, skip_number, 0)
     matrix = np.delete(matrix, skip_number, 1)
 
@@ -132,10 +146,25 @@ else:
     print('Симметричное преобразование\n')
     print(f'Подматрица С:\n{sub_matrix_c}\nПодматрица B:\n{sub_matrix_b}\n')
 
-F_matrix = np.vstack([np.hstack([sub_matrix_b, sub_matrix_c]), np.hstack([sub_matrix_d, sub_matrix_e])])
+
+if skip_number is None:
+    F_matrix = np.vstack([np.hstack([sub_matrix_b, sub_matrix_c]), np.hstack([sub_matrix_d, sub_matrix_e])])
+else:
+    '''F_matrix = np.hstack(
+        np.hstack([np.vstack([sub_matrix_b, sub_matrix_d]),
+                   np.insert([center_stolb, np.vstack([
+                       np.vstack([sub_matrix_c, sub_matrix_e]),
+                   center_line])], 0)]))'''
+
+    right_corner = np.vstack([sub_matrix_c, sub_matrix_e])
+    left_corner = np.vstack([sub_matrix_b, sub_matrix_d])
+    close_matrix = np.hstack([left_corner, np.insert(right_corner, skip_number, center_stolb, axis=1)])
+    F_matrix = np.insert(close_matrix, skip_number, center_line, axis=0)
+
 print(f'Матрица F:\n{F_matrix}\n')
 
-determinant_A = np.linalg.det(matrix)
+
+determinant_A = np.linalg.det(A_matrix)
 print(f'Определитель матрицы A: {determinant_A}')
 
 diag_num_list = []
@@ -153,12 +182,12 @@ print(f'Сумма диагональных элементов матрицы F:
 
 if determinant_A > diag_sum:
     print('Определитель больше, считаем формулу A * At - K * Ft\n')
-    answer = np.dot(matrix, matrix.transpose()) - np.dot(k, F_matrix.transpose())
+    answer = np.dot(A_matrix, A_matrix.transpose()) - np.dot(k, F_matrix.transpose())
 else:
     print('Определитель меньше, считаем формулу (At + G - F^(-1)) * K\n')
-    G_matrix = np.tril(matrix, k=-1)
+    G_matrix = np.tril(A_matrix, k=-1)
     print(f'G-нижняя треугольная матрица, полученная из А:\n{G_matrix}')
-    answer = (matrix.transpose() + G_matrix - F_matrix.I) * k
+    answer = (A_matrix.transpose() + G_matrix - F_matrix.I) * k
 
 answer = answer.tolist()
 for i in range(len(answer)):
@@ -179,13 +208,13 @@ plt.colorbar()
 plt.title("Тепловая карта")
 plt.show()
 
-explode = [0]*(n-2)                                     # отношение средних значений от каждой строки
+explode = [0]*(n-1)                                     # отношение средних значений от каждой строки
 explode.append(0.1)
 plt.title("Круговая диаграмма")
 try:
     sizes = [round(np.mean(abs(F_matrix[i, ::])) * 100, 1) for i in range(n)]
 except IndexError:
-    sizes = [round(np.mean(abs(F_matrix[i, ::])) * 100, 1) for i in range(n - 1)]
+    sizes = [round(np.mean(abs(F_matrix[i, ::])) * 100, 1) for i in range(n)]
 
-plt.pie(sizes, labels=list(range(1, n)), explode=explode, autopct='%1.1f%%', shadow=False)
+plt.pie(sizes, labels=list(range(1, n+1)), explode=explode, autopct='%1.1f%%', shadow=False)
 plt.show()
